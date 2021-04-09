@@ -1,5 +1,7 @@
 .App {
   text-align: center;
+  overflow-x: hidden; 
+  overflow-y: hidden; 
 }
 
 .App-logo {
@@ -36,16 +38,30 @@
     transform: rotate(360deg);
   }
 }
-
-
 .background {
-  position: absolute;
-  background-color: red;
-  height: 600px;
-  width: 600px; 
+  position: fixed;
+  height: 100vh; 
+  width: 100vw;
+}
+
+
+.board {
+  position: fixed;
+  height: 1000px;
+  width: 1000px; 
   left: 50%;
   top: 50%;
   border-radius: 100%; 
   transform: translate(-50%, -50%);
-  overflow: hidden; 
+}
+
+.couldMouveThere{
+  position: absolute; 
+  left: 50%;
+  top: 50%;
+  width: 30px;
+  height: 30px; 
+  border-radius: 50%;
+  background-color: red;
+  z-index: 1001; 
 }
