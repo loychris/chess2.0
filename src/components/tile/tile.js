@@ -26,14 +26,6 @@ class Tile extends Component {
         const pos = Number(this.props.position.substring(1,this.props.position.length)); 
         const posLetter = this.props.position.substring(1,0);
         const ring = posLetter === 'A' ? 0 : posLetter === 'B' ? 1 : posLetter === 'C' ? 2 : 3;
-        const radius = 0.5 * BOARD_WIDTH - ring * 75 - 0.5 * 75 
-        const deg = (11.25 + 22.5*(pos-1)) - 90;
-        const y = - 0.5 * PIECE_HEIGHT;
-        const x = - 0.5 * PIECE_HEIGHT;
-        const couldMoveThereStyles = {
-            transform: `translate(${30}px, ${100}px)`
-        }
-
         let color = (pos+ring) % 2 === 0 ? "#eeeeee" : '#111111';
         if(this.props.selected) color = '#ff0000'; 
         let width = posLetter === 'A' ? 500 : posLetter === 'B' ? 425 : posLetter === 'C' ? 350 : 275;
@@ -49,7 +41,10 @@ class Tile extends Component {
             <div 
                 style={this.getStyles(pos)} 
                 className={classes.tile} 
-                onClick={this.props.couldMoveThere ? () => this.props.move(pos+ring) : () => console.log('Illegal move')}>
+                onClick={
+                    this.props.couldMoveThere 
+                    ? () => this.props.move(this.props.position) 
+                    : () => console.log('Illegal move')}>
                 <svg 
                     width={this.transform(width)}  
                     height={this.transform(height)} 

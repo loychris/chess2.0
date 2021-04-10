@@ -23,12 +23,73 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selected: 'b2',
+      selected: null,
       moves: [], 
-      possibleMoves: ['A3', 'B3', 'C3', 'D3'],
+      possibleMoves: [],
       next: 'w',
-      boardState: ORIGINAL_BOARD
+      last: 's',
+      boardState: ORIGINAL_BOARD, 
+      player: 'w'
     }
+  }
+
+  getLegalMoves = (pos) => {
+    let possibleMoves = []; 
+    const piece = this.state.boardState.find(p => p.split(':')[1] === pos);
+    if(!piece) return possibleMoves; 
+    const color = piece.charAt(0);
+    switch(piece.charAt(1)){
+      case 'p': 
+        const pawnNr = Number(piece.charAt(2));
+        const row = Number(pos.substring(1, pos.length));
+        let dir = (color === 'w' && pawnNr > 4) || (color === 'b' && pawnNr < 5) ? 1 : -1;
+        let target = `${pos.charAt(0)}${row+dir}`
+        //doubleMove
+        let target2 = `${pos.charAt(0)}${row+dir*2}`
+        if((color === 'w' && (row === 7 || row === 10)) || (color === 'b' && (row === 2 || row === 15))){
+          if(!this.state.boardState.some(p => p.split(':')[1] === target2)){
+            possibleMoves.push(target2);
+          }
+        }
+        //blocked
+        if(!this.state.boardState.some(p => p.split(':')[1] === target)){
+          possibleMoves.push(target);
+        } 
+        //attack
+        const rightRow = this.numberToLetter(this.letterToNumber(pos.charAt(0))+1);
+        const leftRow = this.numberToLetter(this.letterToNumber(pos.charAt(0))-1);
+        const rightAttackPos = `${rightRow}${row+dir}`
+        const leftAttackPos = `${leftRow}${row+dir}`
+        if(rightRow && this.state.boardState.some(p => p.split(':')[1] === rightAttackPos && p.charAt(0) === this.state.last)){
+          possibleMoves.push(rightAttackPos);
+        }
+        if(leftRow && this.state.boardState.some(p => p.split(':')[1] === leftAttackPos && p.charAt(0) === this.state.last)){
+          possibleMoves.push(leftAttackPos);
+        }
+        break;
+      case 'q': console.log('queen'); break;
+      case 'k': console.log('king'); break;
+      case 'b': console.log('bishop'); break;
+      case 'r': console.log('rook'); break;
+      case 'n': console.log('knight'); break;
+    }
+    return possibleMoves;
+  }
+
+  letterToNumber = (letter) => {
+    if(letter === 'A') return 1;
+    if(letter === 'B') return 2;
+    if(letter === 'C') return 3;
+    if(letter === 'D') return 4;
+    else return 999
+  }
+
+  numberToLetter = (number) => {
+    if(number === 1) return 'A';
+    if(number === 2) return 'B';
+    if(number === 3) return 'C';
+    if(number === 4) return 'D';
+    return null;
   }
 
   clickTile = () => {
@@ -36,7 +97,36 @@ class App extends Component {
   }
 
   selectPiece = (pos) => {
-    this.setState({selected: pos})
+    this.setState({
+      selected: pos,
+      possibleMoves: this.getLegalMoves(pos),
+    })
+  }
+
+  move = (pos) => {
+    console.log('move to ', pos)
+    const currentPiece = this.state.boardState.find(p => p.split(':')[1] === this.state.selected);
+      if(currentPiece.charAt(0) === this.state.next){
+        const attackedPiece = this.state.boardState.find(p => p.split(':')[1] === pos);
+        const boardStateNew = [
+          ...this.state.boardState.filter(p => p !== currentPiece && p !== attackedPiece),
+          `${currentPiece.split(':')[0]}:${pos}`
+        ]
+        const nextNew = this.state.next === 'w' ? 'b' : 'w'; 
+        const lastNew = this.state.next
+        const movesNew = [...this.state.moves, `${pos}`]
+        this.setState({
+          boardState: boardStateNew,
+          selected: null,
+          possibleMoves: [], 
+          next: nextNew,
+          last: lastNew,
+        })
+      }else{
+        // PREMOVE
+        console.log('Wait your turn');
+      }
+
   }
 
   getPieces = () => {
@@ -56,18 +146,7 @@ class App extends Component {
     })
   }
 
-  move = (pos) => {
-    const boardStateNew = [
-      ...this.state.boardState.filter(p => {
-        console.log(p.split(':')[1])
-        console.log(this.state.selectPiece);
-        return p.split(':')[1] !== this.state.selectPiece
-      }),
-    ]
-    this.setState({
-      boardState: boardStateNew
-    })
-  }
+  
 
   getTiles = () => {
     return ["A","B","C","D"].map(c => {
@@ -93,10 +172,6 @@ class App extends Component {
       const pos = Number(p.substring(1,p.length)); 
       const posLetter = p.substring(1,0);
       const ring = posLetter === 'A' ? 0 : posLetter === 'B' ? 1 : posLetter === 'C' ? 2 : 3;
-      console.log('pos: ', pos)
-      console.log('posLetter: ', posLetter)
-      console.log('ring: ', ring)
-      console.log('p: ', p)
       const radius = 0.5 * BOARD_WIDTH - (ring-2) * 75 - 0.5 * 75 
       const deg = (11.25 + 22.5*(pos-1)) - 90;
       const y = Math.cos(deg*Math.PI/180) * radius - 0.5 * 30;
