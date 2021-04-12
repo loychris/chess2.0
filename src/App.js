@@ -6,16 +6,15 @@ import background from './background.mp4'
 
 import Tile from './components/tile/tile'; 
 import Piece from './components/peace/peace'; 
+import MoveOption from './components/moveOption/moveOption';
 
-
-const BOARD_WIDTH = 700;
 
 const ORIGINAL_BOARD = [
-  'bq:D0', 'bk:D15', 'bb1:C0','bb2:C15', 'bn1:B0', 'bn2:B15', 'br1:A0', 'br2:A15',
-  'bp1:A1', 'bp2:B1', 'bp3:C1', 'bp4:D1', 'bp5:A14', 'bp6:B14', 'bp7:C14', 'bp8:D14', 
-
-  'wq:D7', 'wk:D8', 'wb1:C7', 'wb2:C8', 'wn1:B7', 'wn2:B8', 'wr1:A7', 'wr2:A8',
-  'wp1:A6', 'wp2:B6', 'wp3:C6', 'wp4:D6', 'wp5:A9', 'wp6:B9', 'wp7:C9', 'wp8:D9',
+  // 'bq:D0', 'bk:D15', 'bb1:C0','bb2:C15', 'bn1:B0', 'bn2:B15', 'br1:A0', 'br2:A15',
+  // 'bp1:A1', 'bp2:B1', 'bp3:C1', 'bp4:D1', 'bp5:A14', 'bp6:B14', 'bp7:C14', 'bp8:D14', 
+      'wr1:A1', 'br1:C2'
+  // 'wq:D7', 'wk:D8', 'wb1:C7', 'wb2:C8', 'wn1:B7', 'wn2:B8', 'wr1:A7', 'wr2:A8',
+  // 'wp1:A6', 'wp2:B6', 'wp3:C6', 'wp4:D6', 'wp5:A9', 'wp6:B9', 'wp7:C9', 'wp8:D9',
 ]
 
 const ROOK_DIRECTIONS = [[1,0],[-1,0],[0,-1],[0,1]];
@@ -105,10 +104,38 @@ class App extends Component {
 
       case 'q': console.log('queen'); break;
       case 'k': console.log('king'); break;
-      case 'b': console.log('bishop'); break;
+      case 'r': console.log('rook'); 
+        for(let i = 0;i<4;i++){
+          let end = false;
+          for(let radius = 1; radius<15; radius++){
+            const newCol = this.numberToLetter(col+radius*ROOK_DIRECTIONS[i][0]);
+            const newRow = ((row+16+radius*ROOK_DIRECTIONS[i][1]) % 16);
+            console.log(newRow);
+            const newPos = `${newCol}${newRow}`
+            if(newCol === null){
+              end = true;
+              continue;
+            }
+            const block = this.state.boardState.find(p => p.split(':')[1] === newPos);
+            if(end) continue;
+            if(block){
+              if(block.charAt(0) !== color){
+                console.log('current color', color)
+                console.log(block.charAt(0));
+                console.log(`found enemy on ${newPos}`)
+                possibleMoves.push(newPos)
+              }
+              end = true;
+              continue;
+            }
+            possibleMoves.push(newPos); 
+          }
+        }
+        break;
       case 'n': console.log('knight'); break;
     }
-    return possibleMoves;
+    console.log(possibleMoves.length);
+    return [...new Set(possibleMoves)];
   }
 
   letterToNumber = (letter) => {
@@ -205,19 +232,13 @@ class App extends Component {
   }
 
   getPossibleMovesDots = () => {
-    return this.state.possibleMoves.map(p => {
-      const pos = Number(p.substring(1,p.length)); 
-      const posLetter = p.substring(1,0);
-      const ring = posLetter === 'A' ? 0 : posLetter === 'B' ? 1 : posLetter === 'C' ? 2 : 3;
-      const radius = 0.5 * BOARD_WIDTH - (ring-2) * 75 - 0.5 * 75 
-      const deg = (11.25 + 22.5*(pos)) - 90;
-      const y = Math.cos(deg*Math.PI/180) * radius - 0.5 * 30;
-      const x = Math.sin(deg*Math.PI/180) * radius - 0.5 * 30;
-      const styles = {
-          transform: `translate(${y}px, ${x}px)`
-      }
-      return <div className='couldMouveThere' style={styles} key={p}></div>
-    });
+    return this.state.possibleMoves.map(position => {
+      return (
+        <MoveOption 
+          position={position}
+          key={position}/>
+      )
+    })
   }
 
 
