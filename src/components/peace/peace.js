@@ -66,7 +66,7 @@ class Piece extends Component {
         const ring = posLetter === 'A' ? 0 : posLetter === 'B' ? 1 : posLetter === 'C' ? 2 : 3;
 
         const radius = 0.5 * BOARD_WIDTH - ring * 75 - 0.5 * 75 
-        const deg = (11.25 + 22.5*(pos-1)) - 90;
+        const deg = (11.25 + 22.5*(pos)) - 90;
         const y = Math.cos(deg*Math.PI/180) * radius - 0.5 * PIECE_HEIGHT;
         const x = Math.sin(deg*Math.PI/180) * radius - 0.5 * PIECE_HEIGHT;
         const styles = {

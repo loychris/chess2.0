@@ -11,7 +11,7 @@ class Tile extends Component {
 
     getStyles = (pos) => {
         let styles = {}
-        styles.transform = `rotate(${(pos+3)*22.5}deg)`;
+        styles.transform = `rotate(${(pos+4)*22.5}deg)`;
         return styles;
     }
 
@@ -24,6 +24,7 @@ class Tile extends Component {
 
     render() {
         const pos = Number(this.props.position.substring(1,this.props.position.length)); 
+        console.log(pos)
         const posLetter = this.props.position.substring(1,0);
         const ring = posLetter === 'A' ? 0 : posLetter === 'B' ? 1 : posLetter === 'C' ? 2 : 3;
         let color = (pos+ring) % 2 === 0 ? "#eeeeee" : '#111111';

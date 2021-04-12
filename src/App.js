@@ -11,12 +11,15 @@ import Piece from './components/peace/peace';
 const BOARD_WIDTH = 700;
 
 const ORIGINAL_BOARD = [
-  'bq:D1', 'bk:D16', 'bb1:C1','bb2:C16', 'bn1:B1', 'bn2:B16', 'br1:A1', 'br2:A16',
-  'bp1:A2', 'bp2:B2', 'bp3:C2', 'bp4:D2', 'bp5:A15', 'bp6:B15', 'bp7:C15', 'bp8:D15', 
+  'bq:D0', 'bk:D15', 'bb1:C0','bb2:C15', 'bn1:B0', 'bn2:B15', 'br1:A0', 'br2:A15',
+  'bp1:A1', 'bp2:B1', 'bp3:C1', 'bp4:D1', 'bp5:A14', 'bp6:B14', 'bp7:C14', 'bp8:D14', 
 
-  'wq:D8', 'wk:D9', 'wb1:C8', 'wb2:C9', 'wn1:B8', 'wn2:B9', 'wr1:A8', 'wr2:A9',
-  'wp1:A7', 'wp2:B7', 'wp3:C7', 'wp4:D7', 'wp5:A10', 'wp6:B10', 'wp7:C10', 'wp8:D10',
+  'wq:D7', 'wk:D8', 'wb1:C7', 'wb2:C8', 'wn1:B7', 'wn2:B8', 'wr1:A7', 'wr2:A8',
+  'wp1:A6', 'wp2:B6', 'wp3:C6', 'wp4:D6', 'wp5:A9', 'wp6:B9', 'wp7:C9', 'wp8:D9',
 ]
+
+const ROOK_DIRECTIONS = [[1,0],[-1,0],[0,-1],[0,1]];
+const BISHOP_DIRECTIONS = [[1,1],[1,-1],[-1,-1],[-1,1]];
 
 class App extends Component {
 
@@ -27,7 +30,7 @@ class App extends Component {
       moves: [], 
       possibleMoves: [],
       next: 'w',
-      last: 's',
+      last: 'b',
       boardState: ORIGINAL_BOARD, 
       player: 'w'
     }
@@ -38,15 +41,16 @@ class App extends Component {
     const piece = this.state.boardState.find(p => p.split(':')[1] === pos);
     if(!piece) return possibleMoves; 
     const color = piece.charAt(0);
+    const row = Number(pos.substring(1, pos.length));
+    const col = this.letterToNumber(pos.charAt(0));
     switch(piece.charAt(1)){
       case 'p': 
         const pawnNr = Number(piece.charAt(2));
-        const row = Number(pos.substring(1, pos.length));
         let dir = (color === 'w' && pawnNr > 4) || (color === 'b' && pawnNr < 5) ? 1 : -1;
         let target = `${pos.charAt(0)}${row+dir}`
         //doubleMove
         let target2 = `${pos.charAt(0)}${row+dir*2}`
-        if((color === 'w' && (row === 7 || row === 10)) || (color === 'b' && (row === 2 || row === 15))){
+        if((color === 'w' && (row === 6 || row === 9)) || (color === 'b' && (row === 1 || row === 14))){
           if(!this.state.boardState.some(p => p.split(':')[1] === target2)){
             possibleMoves.push(target2);
           }
@@ -67,10 +71,41 @@ class App extends Component {
           possibleMoves.push(leftAttackPos);
         }
         break;
+
+
+
+      case 'b': 
+        for(let i = 0;i<4;i++){
+          let end = false;
+          for(let radius = 1; radius<4; radius++){
+            const newCol = this.numberToLetter(col+radius*BISHOP_DIRECTIONS[i][0]);
+            const newRow = ((row+16+radius*BISHOP_DIRECTIONS[i][1]) % 16);
+            console.log(newRow);
+            const newPos = `${newCol}${newRow}`
+            if(newCol === null){
+              end = true;
+              continue;
+            }
+            const block = this.state.boardState.find(p => p.split(':')[1] === newPos);
+            if(end) continue;
+            if(block){
+              if(block.charAt(0) !== color){
+                console.log('current color', color)
+                console.log(block.charAt(0));
+                console.log(`found enemy on ${newPos}`)
+                possibleMoves.push(newPos)
+              }
+              end = true;
+              continue;
+            }
+            possibleMoves.push(newPos); 
+          }
+        }
+        break;
+
       case 'q': console.log('queen'); break;
       case 'k': console.log('king'); break;
       case 'b': console.log('bishop'); break;
-      case 'r': console.log('rook'); break;
       case 'n': console.log('knight'); break;
     }
     return possibleMoves;
@@ -112,9 +147,11 @@ class App extends Component {
           ...this.state.boardState.filter(p => p !== currentPiece && p !== attackedPiece),
           `${currentPiece.split(':')[0]}:${pos}`
         ]
-        const nextNew = this.state.next === 'w' ? 'b' : 'w'; 
+        const nextNew = this.state.last; 
         const lastNew = this.state.next
         const movesNew = [...this.state.moves, `${pos}`]
+        console.log(this.state.last, lastNew)
+        console.log(this.state.next, nextNew)
         this.setState({
           boardState: boardStateNew,
           selected: null,
@@ -137,7 +174,7 @@ class App extends Component {
       <Piece 
         position={pos} 
         kind={kind} 
-        key={pos}
+        key={kind}
         selected={this.state.selected===pos}
         select={this.selectPiece}
         canMoveHere={this.state.possibleMoves.some(t => t === pos)}
@@ -151,7 +188,7 @@ class App extends Component {
   getTiles = () => {
     return ["A","B","C","D"].map(c => {
       let circle = [];
-      for(let i=1;i<17;i++){
+      for(let i=0;i<16;i++){
         circle.push(
           <Tile
             move={this.move}
@@ -173,7 +210,7 @@ class App extends Component {
       const posLetter = p.substring(1,0);
       const ring = posLetter === 'A' ? 0 : posLetter === 'B' ? 1 : posLetter === 'C' ? 2 : 3;
       const radius = 0.5 * BOARD_WIDTH - (ring-2) * 75 - 0.5 * 75 
-      const deg = (11.25 + 22.5*(pos-1)) - 90;
+      const deg = (11.25 + 22.5*(pos)) - 90;
       const y = Math.cos(deg*Math.PI/180) * radius - 0.5 * 30;
       const x = Math.sin(deg*Math.PI/180) * radius - 0.5 * 30;
       const styles = {
