@@ -40,11 +40,7 @@ class Tile extends Component {
         return(
             <div 
                 style={this.getStyles(pos)} 
-                className={classes.tile} 
-                onClick={
-                    this.props.couldMoveThere 
-                    ? () => this.props.move(this.props.position) 
-                    : () => console.log('Illegal move')}>
+                className={classes.tile} >
                 <svg 
                     width={this.transform(width)}  
                     height={this.transform(height)} 
@@ -57,7 +53,10 @@ class Tile extends Component {
                         clipRule="evenodd" 
                         d={d}
                         fill= {color} 
-                        onClick={this.props.clicked}/>
+                        onClick={
+                            this.props.couldMoveThere 
+                            ? () => this.props.move(this.props.position) 
+                            : () => console.log('Illegal move')}/>
                 </svg>
             </div>
         )
